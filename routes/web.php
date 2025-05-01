@@ -1,58 +1,38 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PropertyController;
+use App\Http\Controllers\PropertyMessageController;
+use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('home.houses');
-})->name('home');
-
-Route::get('search', function () {
-    return view('search_practice');
-});
-
-
-// landlord side
-Route::middleware(['auth', 'role:landlord'])->group(function () {
-    Route::get('/landlord/properties/create', [PropertyController::class, 'create'])->name('landlord.properties.create');
-    Route::post('/landlord/properties', [PropertyController::class, 'store'])->name('landlord.properties.store');
-});
-
-Route::get('/landlord/properties', [PropertyController::class, 'index'])->name('landlord.properties.index');
-
-
-
-Route::get('/home', function () {
-    return view('home.house_view');
-})->middleware(['auth', 'verified'])->name('house_view');
-
-Route::get('/Login_Register', function () {
-    return view('home.Login_Register');
-})->name('Login_Register');
-
-
-Route::get('/how-it-works', function () {
-    return view('home.how-it-works');
-})->name('how-it-works');
-
-Route::get('/contact_us', function () {
-    return view('home.contact_us');
+// Public routes
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/contact', function () {
+    return view('home.contact');
 })->name('contact_us');
 
-Route::get('/landlord', function () {
-    return view('landlord.profile');
-})->middleware(['auth', 'verified'])->name('landlord');
+// Public property routes
+Route::get('/properties', [PropertyController::class, 'index'])->name('properties.index');
+Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
+Route::post('/properties/{property}/contact', [PropertyMessageController::class, 'store'])->name('properties.contact');
 
+// Authentication routes are handled by Laravel Breeze
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-Route::middleware('auth')->group(function () {
+// Authenticated routes
+Route::middleware(['auth'])->group(function () {
+    // Profile routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Property management routes
+    Route::get('/properties/create', [PropertyController::class, 'create'])->name('properties.create');
+    Route::post('/properties', [PropertyController::class, 'store'])->name('properties.store');
+    Route::get('/properties/{property}/edit', [PropertyController::class, 'edit'])->name('properties.edit');
+    Route::put('/properties/{property}', [PropertyController::class, 'update'])->name('properties.update');
+    Route::delete('/properties/{property}', [PropertyController::class, 'destroy'])->name('properties.destroy');
+    Route::delete('/photos/{photo}', [PropertyController::class, 'destroyPhoto'])->name('properties.photos.destroy');
 });
 
 require __DIR__.'/auth.php';
